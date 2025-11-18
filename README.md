@@ -38,34 +38,65 @@ PORT=3000
 npm start
 ```
 
-## Railway Deployment
+## Render.com Deployment
 
-### Steps to Deploy on Railway:
+### Steps to Deploy on Render.com:
 
-1. **Connect GitHub Repository:**
-   - Go to [Railway.app](https://railway.app)
-   - Click "New Project"
-   - Select "Deploy from GitHub repo"
-   - Choose your `Car-Vistor-s-Backend` repository
+1. **Create Account & Connect GitHub:**
+   - Go to [Render.com](https://render.com)
+   - Sign up/Login with your GitHub account
+   - Click "New +" → "Web Service"
 
-2. **Add Environment Variables:**
-   In Railway dashboard, go to Variables tab and add:
-   - `MONGODB_URI` - Your MongoDB connection string
-   - `JWT_SECRET` - Your JWT secret key (any random string)
-   - `PORT` - Railway automatically provides this, but you can set it if needed
+2. **Connect Repository:**
+   - Select "Build and deploy from a Git repository"
+   - Connect your GitHub account if not already connected
+   - Select `Car-Vistor-s-Backend` repository
+   - Click "Connect"
 
-3. **Deploy:**
-   - Railway will automatically detect Node.js and deploy
-   - The service will start automatically
-   - Get your backend URL from Railway dashboard
+3. **Configure Service:**
+   - **Name:** `car-vistors-backend` (or any name you prefer)
+   - **Region:** Choose closest to your users (e.g., Singapore, Mumbai)
+   - **Branch:** `main`
+   - **Root Directory:** Leave empty (or `backend` if deploying from monorepo)
+   - **Runtime:** `Node`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Instance Type:** Free tier is fine for testing
 
-4. **Update Frontend:**
-   - Update your frontend `API_BASE_URL` to your Railway backend URL
-   - Example: `https://your-app-name.railway.app/api`
+4. **Add Environment Variables:**
+   In Render dashboard, go to "Environment" section and add:
+   - `MONGODB_URI` = Your MongoDB connection string (from MongoDB Atlas)
+   - `JWT_SECRET` = Your JWT secret key (any random string, e.g., `my-super-secret-jwt-key-2024`)
+   - `NODE_ENV` = `production` (optional but recommended)
+   - `PORT` = Render automatically provides this, don't set manually
+
+5. **Deploy:**
+   - Click "Create Web Service"
+   - Render will automatically:
+     - Install dependencies
+     - Build your application
+     - Start the server
+   - Wait for deployment to complete (usually 2-5 minutes)
+
+6. **Get Your Backend URL:**
+   - After deployment, you'll get a URL like: `https://car-vistors-backend.onrender.com`
+   - This is your backend API URL
+
+7. **Update Frontend:**
+   - Update your frontend `API_BASE_URL` in `frontend/src/Services/APIs.jsx`
+   - Change from: `http://192.168.100.72:3000/api`
+   - To: `https://your-app-name.onrender.com/api`
+   - Example: `https://car-vistors-backend.onrender.com/api`
 
 ### Health Check:
-- Visit: `https://your-railway-url.railway.app/health`
+- Visit: `https://your-app-name.onrender.com/health`
 - Should return: `{ "status": "OK", "message": "Server is running" }`
+
+### Important Notes:
+- **Free Tier:** Render free tier spins down after 15 minutes of inactivity. First request after spin-down may take 30-60 seconds.
+- **MongoDB Atlas:** Make sure your MongoDB Atlas allows connections from anywhere (0.0.0.0/0) or add Render's IP addresses
+- **CORS:** Backend is configured to accept requests from any origin. Update CORS in production if needed.
+- **Auto-Deploy:** Render automatically deploys on every push to `main` branch
 
 ## API Endpoints
 

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: car-vistors-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+    healthCheckPath: /health
+
