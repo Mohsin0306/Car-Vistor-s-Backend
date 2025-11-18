@@ -38,6 +38,35 @@ PORT=3000
 npm start
 ```
 
+## Railway Deployment
+
+### Steps to Deploy on Railway:
+
+1. **Connect GitHub Repository:**
+   - Go to [Railway.app](https://railway.app)
+   - Click "New Project"
+   - Select "Deploy from GitHub repo"
+   - Choose your `Car-Vistor-s-Backend` repository
+
+2. **Add Environment Variables:**
+   In Railway dashboard, go to Variables tab and add:
+   - `MONGODB_URI` - Your MongoDB connection string
+   - `JWT_SECRET` - Your JWT secret key (any random string)
+   - `PORT` - Railway automatically provides this, but you can set it if needed
+
+3. **Deploy:**
+   - Railway will automatically detect Node.js and deploy
+   - The service will start automatically
+   - Get your backend URL from Railway dashboard
+
+4. **Update Frontend:**
+   - Update your frontend `API_BASE_URL` to your Railway backend URL
+   - Example: `https://your-app-name.railway.app/api`
+
+### Health Check:
+- Visit: `https://your-railway-url.railway.app/health`
+- Should return: `{ "status": "OK", "message": "Server is running" }`
+
 ## API Endpoints
 
 ### Authentication

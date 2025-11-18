@@ -10,10 +10,18 @@ const reportRoutes = require('./routes/Report');
 const notificationRoutes = require('./routes/Notification');
 dotenv.config();
 const app = express();
-const port = 3000;
 
-app.use(cors());
+// CORS configuration - allow all origins for Railway deployment
+app.use(cors({
+  origin: '*', // In production, replace with your frontend URL
+  credentials: true
+}));
 app.use(express.json());
+
+// Health check endpoint for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vin', freeVinRoutes);
@@ -22,8 +30,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+// Use PORT from environment variable (Railway provides this) or default to 3000
+const port = process.env.PORT || 3000;
+
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on http://192.168.100.72:${port}`);
-  console.log(`Server is also accessible on http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
   connectDB();
 });
