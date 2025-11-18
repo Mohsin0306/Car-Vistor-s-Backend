@@ -40,7 +40,9 @@ const createVinRequest = async (req, res) => {
     }
 
     // Get vehicle details using free VIN decode
-    const vinDecodeResponse = await fetch('http://localhost:3000/api/vin/decode', {
+    // Use environment variable for API URL or default to localhost
+    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+    const vinDecodeResponse = await fetch(`${apiBaseUrl}/api/vin/decode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,6 +123,10 @@ const getAllVinRequests = async (req, res) => {
   try {
     const { status, page = 1, limit = 10, search } = req.query;
     
+    // Validate and parse pagination parameters
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+    
     let filter = {};
     if (status && status !== 'all') {
       filter.status = status;
@@ -138,30 +144,35 @@ const getAllVinRequests = async (req, res) => {
       ];
     }
 
-    const requests = await VinRequest.find(filter)
-      .sort({ requestDate: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await VinRequest.countDocuments(filter);
+    // Execute queries with error handling
+    const [requests, total] = await Promise.all([
+      VinRequest.find(filter)
+        .sort({ requestDate: -1 })
+        .limit(limitNum)
+        .skip((pageNum - 1) * limitNum)
+        .lean(),
+      VinRequest.countDocuments(filter)
+    ]);
 
     res.json({
       success: true,
       data: {
-        requests,
+        requests: requests || [],
         pagination: {
-          current: parseInt(page),
-          pages: Math.ceil(total / limit),
-          total
+          current: pageNum,
+          pages: Math.ceil(total / limitNum),
+          total: total || 0
         }
       }
     });
 
   } catch (error) {
     console.error('Get VIN requests error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Server error occurred while fetching VIN requests'
+      message: 'Server error occurred while fetching VIN requests',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
