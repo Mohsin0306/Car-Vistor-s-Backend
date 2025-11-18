@@ -31,9 +31,20 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Use PORT from environment variable (Railway provides this) or default to 3000
-const port = process.env.PORT || 3000;
+// Ensure PORT is a valid integer
+const port = parseInt(process.env.PORT, 10) || 3000;
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on port ${port}`);
-  connectDB();
-});
+// Validate port number
+if (isNaN(port) || port < 0 || port > 65535) {
+  console.error('Invalid PORT value. Using default port 3000');
+  const defaultPort = 3000;
+  app.listen(defaultPort, '0.0.0.0', () => {
+    console.log(`Server is running on port ${defaultPort}`);
+    connectDB();
+  });
+} else {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server is running on port ${port}`);
+    connectDB();
+  });
+}
