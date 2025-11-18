@@ -33,6 +33,25 @@ app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  console.error('Error stack:', err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Server error occurred',
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
 // Use PORT from environment variable (Railway provides this) or default to 3000
 // Ensure PORT is a valid integer
 const port = parseInt(process.env.PORT, 10) || 3000;
@@ -46,8 +65,8 @@ if (isNaN(port) || port < 0 || port > 65535) {
     connectDB();
   });
 } else {
-  app.listen(port, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);
-    connectDB();
-  });
+  connectDB();
+});
 }
