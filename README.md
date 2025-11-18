@@ -38,65 +38,61 @@ PORT=3000
 npm start
 ```
 
-## Render.com Deployment
+## Railway Deployment
 
-### Steps to Deploy on Render.com:
+### Steps to Deploy on Railway:
 
 1. **Create Account & Connect GitHub:**
-   - Go to [Render.com](https://render.com)
+   - Go to [Railway.app](https://railway.app)
    - Sign up/Login with your GitHub account
-   - Click "New +" → "Web Service"
+   - Click "New Project"
 
 2. **Connect Repository:**
-   - Select "Build and deploy from a Git repository"
+   - Select "Deploy from GitHub repo"
    - Connect your GitHub account if not already connected
    - Select `Car-Vistor-s-Backend` repository
-   - Click "Connect"
+   - Click "Deploy Now"
 
-3. **Configure Service:**
-   - **Name:** `car-vistors-backend` (or any name you prefer)
-   - **Region:** Choose closest to your users (e.g., Singapore, Mumbai)
-   - **Branch:** `main`
-   - **Root Directory:** Leave empty (or `backend` if deploying from monorepo)
-   - **Runtime:** `Node`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Instance Type:** Free tier is fine for testing
+3. **Add Environment Variables:**
+   In Railway dashboard:
+   - Go to your project → Click on the service
+   - Go to "Variables" tab
+   - Add the following environment variables:
+     - `MONGODB_URI` = Your MongoDB connection string (from MongoDB Atlas)
+     - `JWT_SECRET` = Your JWT secret key (any random string, e.g., `my-super-secret-jwt-key-2024`)
+     - `NODE_ENV` = `production` (optional but recommended)
+     - `PORT` = Railway automatically provides this, don't set manually
 
-4. **Add Environment Variables:**
-   In Render dashboard, go to "Environment" section and add:
-   - `MONGODB_URI` = Your MongoDB connection string (from MongoDB Atlas)
-   - `JWT_SECRET` = Your JWT secret key (any random string, e.g., `my-super-secret-jwt-key-2024`)
-   - `NODE_ENV` = `production` (optional but recommended)
-   - `PORT` = Render automatically provides this, don't set manually
-
-5. **Deploy:**
-   - Click "Create Web Service"
-   - Render will automatically:
-     - Install dependencies
-     - Build your application
-     - Start the server
+4. **Deploy:**
+   - Railway will automatically:
+     - Detect Node.js
+     - Install dependencies (`npm install`)
+     - Start the server (`npm start`)
    - Wait for deployment to complete (usually 2-5 minutes)
+   - Check the "Deployments" tab for build logs
 
-6. **Get Your Backend URL:**
-   - After deployment, you'll get a URL like: `https://car-vistors-backend.onrender.com`
-   - This is your backend API URL
+5. **Get Your Backend URL:**
+   - After deployment, go to "Settings" tab
+   - Under "Domains", you'll see your Railway URL
+   - Example: `https://car-vistors-backend-production.up.railway.app`
+   - Or generate a custom domain if you have one
 
-7. **Update Frontend:**
+6. **Update Frontend:**
    - Update your frontend `API_BASE_URL` in `frontend/src/Services/APIs.jsx`
    - Change from: `http://192.168.100.72:3000/api`
-   - To: `https://your-app-name.onrender.com/api`
-   - Example: `https://car-vistors-backend.onrender.com/api`
+   - To: `https://your-app-name.up.railway.app/api`
+   - Example: `https://car-vistors-backend-production.up.railway.app/api`
 
 ### Health Check:
-- Visit: `https://your-app-name.onrender.com/health`
+- Visit: `https://your-app-name.up.railway.app/health`
 - Should return: `{ "status": "OK", "message": "Server is running" }`
 
 ### Important Notes:
-- **Free Tier:** Render free tier spins down after 15 minutes of inactivity. First request after spin-down may take 30-60 seconds.
-- **MongoDB Atlas:** Make sure your MongoDB Atlas allows connections from anywhere (0.0.0.0/0) or add Render's IP addresses
+- **Free Tier:** Railway free tier includes $5 credit per month. After that, you'll need to upgrade.
+- **MongoDB Atlas:** Make sure your MongoDB Atlas allows connections from anywhere (0.0.0.0/0) or add Railway's IP addresses
 - **CORS:** Backend is configured to accept requests from any origin. Update CORS in production if needed.
-- **Auto-Deploy:** Render automatically deploys on every push to `main` branch
+- **Auto-Deploy:** Railway automatically deploys on every push to `main` branch
+- **Build Logs:** Check "Deployments" tab if deployment fails to see error logs
 
 ## API Endpoints
 
