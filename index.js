@@ -13,8 +13,11 @@ const app = express();
 
 // CORS configuration - allow all origins for Railway deployment
 app.use(cors({
-  origin: '*', // In production, replace with your frontend URL
-  credentials: true
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false, // Set to false when using origin: '*'
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
 
