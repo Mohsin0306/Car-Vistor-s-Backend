@@ -9,10 +9,31 @@ const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
+    // Validate input
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'All fields are required' 
+      });
+    }
+
+    // Check MongoDB connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('MongoDB not connected. Connection state:', mongoose.connection.readyState);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection not available. Please try again later.'
+      });
+    }
+
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'User already exists' 
+      });
     }
 
     // Hash password
@@ -50,14 +71,24 @@ const registerUser = async (req, res) => {
       console.error('Register notification error:', notificationError);
     }
 
+    // Check JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. Please contact administrator.'
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.status(201).json({
+      success: true,
       message: 'User registered successfully',
       token,
       user: {
@@ -83,16 +114,40 @@ const registerAdmin = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role = 'admin' } = req.body;
 
+    // Validate input
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'All fields are required' 
+      });
+    }
+
+    // Check MongoDB connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('MongoDB not connected. Connection state:', mongoose.connection.readyState);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection not available. Please try again later.'
+      });
+    }
+
     // Check if any admin already exists (only allow one admin)
     const adminCount = await Admin.countDocuments();
     if (adminCount > 0) {
-      return res.status(400).json({ message: 'Admin registration is not allowed. Only one admin can exist.' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Admin registration is not allowed. Only one admin can exist.' 
+      });
     }
 
     // Check if admin already exists with this email
-    const existingAdmin = await Admin.findOne({ email });
+    const existingAdmin = await Admin.findOne({ email: email.toLowerCase().trim() });
     if (existingAdmin) {
-      return res.status(400).json({ message: 'Admin already exists' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Admin already exists' 
+      });
     }
 
     // Hash password
@@ -110,14 +165,24 @@ const registerAdmin = async (req, res) => {
 
     await admin.save();
 
+    // Check JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. Please contact administrator.'
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { adminId: admin._id, role: admin.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.status(201).json({
+      success: true,
       message: 'Admin registered successfully',
       token,
       admin: {
@@ -144,25 +209,70 @@ const loginUser = async (req, res) => {
   try {
     const { email, password, userType = 'user' } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email and password are required' 
+      });
+    }
+
+    // Check MongoDB connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('MongoDB not connected. Connection state:', mongoose.connection.readyState);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection not available. Please try again later.'
+      });
+    }
+
+    // Check JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error. Please contact administrator.'
+      });
+    }
+
     let user, isAdmin = false;
 
-    if (userType === 'admin') {
-      // Find admin
-      user = await Admin.findOne({ email });
-      isAdmin = true;
-    } else {
-      // Find regular user
-      user = await User.findOne({ email });
+    try {
+      if (userType === 'admin') {
+        // Find admin
+        user = await Admin.findOne({ email: email.toLowerCase().trim() });
+        isAdmin = true;
+      } else {
+        // Find regular user
+        user = await User.findOne({ email: email.toLowerCase().trim() });
+      }
+    } catch (dbError) {
+      console.error('Database query error during login:', dbError);
+      throw dbError;
     }
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
     }
 
     // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = false;
+    try {
+      isMatch = await bcrypt.compare(password, user.password);
+    } catch (bcryptError) {
+      console.error('Password comparison error:', bcryptError);
+      throw bcryptError;
+    }
+
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
     }
 
     // Generate JWT token with appropriate payload
@@ -170,13 +280,20 @@ const loginUser = async (req, res) => {
       ? { adminId: user._id, role: user.role, userType: 'admin' }
       : { userId: user._id, userType: 'user' };
 
-    const token = jwt.sign(
-      tokenPayload,
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
-    );
+    let token;
+    try {
+      token = jwt.sign(
+        tokenPayload,
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+    } catch (jwtError) {
+      console.error('JWT signing error:', jwtError);
+      throw jwtError;
+    }
 
     const responseData = {
+      success: true,
       message: 'Login successful',
       token,
       userType: isAdmin ? 'admin' : 'user'
@@ -197,11 +314,13 @@ const loginUser = async (req, res) => {
         lastName: user.lastName,
         email: user.email
       };
-      }
+    }
 
     res.json(responseData);
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false,
