@@ -8,6 +8,7 @@ const requestRoutes = require('./routes/Request');
 const userRoutes = require('./routes/User');
 const reportRoutes = require('./routes/Report');
 const notificationRoutes = require('./routes/Notification');
+const contactRoutes = require('./routes/Contact');
 dotenv.config();
 const app = express();
 
@@ -56,6 +57,7 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
