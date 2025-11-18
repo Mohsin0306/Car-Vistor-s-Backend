@@ -13,12 +13,12 @@ const app = express();
 
 // CORS configuration - allow specific origins
 const allowedOrigins = [
+  'https://carvistors.vercel.app',
   'http://192.168.100.72:5173',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  // Add production frontend URL here when deployed
 ];
 
 app.use(cors({
