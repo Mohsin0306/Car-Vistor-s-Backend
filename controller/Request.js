@@ -127,6 +127,16 @@ const getAllVinRequests = async (req, res) => {
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
     
+    // Check MongoDB connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('MongoDB not connected. Connection state:', mongoose.connection.readyState);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection not available. Please try again later.'
+      });
+    }
+    
     let filter = {};
     if (status && status !== 'all') {
       filter.status = status;
@@ -150,8 +160,15 @@ const getAllVinRequests = async (req, res) => {
         .sort({ requestDate: -1 })
         .limit(limitNum)
         .skip((pageNum - 1) * limitNum)
-        .lean(),
-      VinRequest.countDocuments(filter)
+        .lean()
+        .catch(err => {
+          console.error('Find query error:', err);
+          throw err;
+        }),
+      VinRequest.countDocuments(filter).catch(err => {
+        console.error('Count query error:', err);
+        throw err;
+      })
     ]);
 
     res.json({
@@ -169,6 +186,8 @@ const getAllVinRequests = async (req, res) => {
   } catch (error) {
     console.error('Get VIN requests error:', error);
     console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     res.status(500).json({
       success: false,
       message: 'Server error occurred while fetching VIN requests',
