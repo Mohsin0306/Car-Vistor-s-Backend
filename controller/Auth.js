@@ -78,7 +78,6 @@ const registerUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
     const token = jwt.sign(
       { userId: user._id },
       jwtSecret,
@@ -170,7 +169,6 @@ const registerAdmin = async (req, res) => {
     }
 
     // Generate JWT token
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
     const token = jwt.sign(
       { adminId: admin._id, role: admin.role },
       jwtSecret,
